@@ -1,0 +1,1402 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RevasH AI – Deep UI Demo</title>
+  <style>
+    :root{
+      --bg:#2f75db;
+      --panel:#0a0f18;
+      --panel2:#0d1422;
+      --card:#101726;
+      --card2:#0d1320;
+      --line:rgba(255,255,255,.08);
+      --soft:rgba(255,255,255,.05);
+      --text:#f5f7ff;
+      --muted:#9aa4bc;
+      --accent:#6ea8ff;
+      --shadow:0 24px 80px rgba(0,0,0,.4);
+      --radius:22px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--text);
+      background:linear-gradient(180deg, #090d16 0%, #060a12 100%);
+      overflow:auto;
+    }
+    .shell{
+      min-height:100vh;
+      padding:0;
+      background:transparent;
+    }
+    .app{
+      min-height:100vh;
+      height:auto;
+      border-radius:0;
+      overflow:hidden;
+      background:
+        radial-gradient(600px 300px at 55% 12%, rgba(120,160,255,.12), transparent 60%),
+        linear-gradient(90deg, rgba(255,255,255,.02), rgba(255,255,255,0) 6%, rgba(255,255,255,.03) 38%, rgba(255,255,255,0) 52%, rgba(255,255,255,.02) 75%, rgba(255,255,255,0) 100%),
+        linear-gradient(180deg, #090d16 0%, #060a12 100%);
+      display:grid;
+      grid-template-columns: 190px 1fr;
+      box-shadow:var(--shadow);
+      border:1px solid rgba(255,255,255,.04);
+      position:relative;
+      transition:grid-template-columns .28s ease;
+    }
+    .sidebar{
+      position:relative;
+      overflow:visible;
+      transition:padding .28s ease, border-color .28s ease;
+      border-right:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      padding:18px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      min-width:0;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      padding:6px 8px;
+      min-width:0;
+    }
+    .brand img{width:28px;height:28px;border-radius:8px;object-fit:cover;flex:0 0 auto}
+    .brand .name{font-weight:800;font-size:13px;letter-spacing:.2px}
+    .search{
+      display:flex; align-items:center; gap:8px;
+      height:36px; padding:0 10px; border-radius:12px;
+      background:rgba(255,255,255,.04); border:1px solid var(--line);
+      color:var(--muted); font-size:12px;
+    }
+    .nav{display:flex; flex-direction:column; gap:4px}
+    .navbtn{
+      display:flex; align-items:center; gap:10px; padding:10px 12px;
+      border-radius:12px; color:#e7ecff; font-size:12px; text-decoration:none;
+      background:transparent; border:1px solid transparent;
+    }
+    .navbtn:hover,.navbtn.active{background:rgba(255,255,255,.035); border-color:rgba(255,255,255,.06)}
+    .navbtn .ic{width:14px; text-align:center; opacity:.92}
+    .history{
+      margin-top:auto;
+      display:flex; flex-direction:column; gap:12px;
+      color:var(--muted); font-size:11px;
+      min-height:0;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .history .grp{color:#fff;font-weight:700;font-size:12px}
+    .histItem{
+      opacity:.92; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    .sidebarToggle{
+      position:absolute;
+      top:20px;
+      right:-15px;
+      width:30px;
+      height:30px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.09);
+      background:linear-gradient(180deg, rgba(20,28,45,.96), rgba(9,14,24,.96));
+      color:#edf3ff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      box-shadow:0 10px 30px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.06);
+      z-index:25;
+      transition:transform .25s ease, background .25s ease, border-color .25s ease, opacity .25s ease;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .sidebarToggle:hover{
+      transform:translateX(1px) scale(1.04);
+      border-color:rgba(255,255,255,.15);
+      background:linear-gradient(180deg, rgba(26,36,57,.98), rgba(10,16,28,.98));
+    }
+    .sidebarToggle svg{
+      width:14px;
+      height:14px;
+      transition:transform .28s ease;
+      pointer-events:none;
+    }
+
+    .main{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      padding:20px 22px 20px 18px;
+      position:relative;
+      transition:padding .28s ease;
+    }
+    .topline{display:flex; justify-content:space-between; align-items:center; gap:16px}
+    .mode{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:14px; border:1px solid var(--line);
+      background:rgba(255,255,255,.03); font-size:12px; color:#f0f4ff;
+      width:max-content;
+    }
+    .statusPill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:#cfd8f7; font-size:12px;
+    }
+    .dot{width:9px; height:9px; border-radius:50%; background:#f87171}
+    .dot.on{background:#4ade80}
+
+    .hero{
+      padding:40px 10px 60px;
+      flex:none;
+      min-height:auto;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:14px 10px 40px;
+      gap:18px;
+      transition:padding .28s ease, gap .28s ease;
+    }
+    .hero.chatStarted{
+      justify-content:flex-start;
+      align-items:center;
+      padding-top:10px;
+      gap:8px;
+    }
+    .hero.chatStarted .orb,
+    .hero.chatStarted .welcome{
+      opacity:0;
+      transform:translateY(-10px) scale(.96);
+      pointer-events:none;
+      height:0;
+      margin:0;
+      overflow:hidden;
+    }
+    .orb{
+      width:82px; height:82px; border-radius:50%;
+      transition:opacity .24s ease, transform .24s ease, height .24s ease, margin .24s ease;
+      background:
+        radial-gradient(circle at 34% 28%, rgba(255,255,255,.85), rgba(255,255,255,.1) 26%, transparent 32%),
+        radial-gradient(circle at 68% 32%, rgba(255,176,156,.95), rgba(255,176,156,.05) 32%, transparent 40%),
+        radial-gradient(circle at 52% 68%, rgba(89,164,255,.95), rgba(89,164,255,.06) 34%, transparent 46%),
+        radial-gradient(circle at 40% 50%, rgba(206,133,255,.7), rgba(206,133,255,.05) 50%, transparent 56%),
+        linear-gradient(145deg, rgba(255,255,255,.18), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.22);
+      box-shadow:0 0 35px rgba(124,165,255,.22), inset 0 0 16px rgba(255,255,255,.15);
+    }
+    .welcome{text-align:center; transition:opacity .24s ease, transform .24s ease, height .24s ease, margin .24s ease;}
+    .welcome h1{margin:0; font-size:20px; font-weight:600; line-height:1.25}
+    .welcome p{margin:4px 0 0; font-size:20px; font-weight:600; line-height:1.25}
+    .smallContext{text-align:center; color:var(--muted); font-size:12px; max-width:720px; line-height:1.45}
+
+    .composerWrap{
+      margin-top:44px;
+      transition:margin-top .28s ease, width .28s ease, box-shadow .28s ease, background .28s ease;
+      animation: fadeUp 0.6s ease;
+      width:min(880px, 92%);
+      border-radius:28px;
+      border:1px solid rgba(255,255,255,.07);
+      background:linear-gradient(180deg, rgba(18,24,37,.9), rgba(10,15,26,.88));
+      box-shadow:0 28px 80px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.03);
+      overflow:hidden;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .hero.chatStarted .composerWrap{
+      margin-top:0;
+      width:min(980px, 95%);
+      box-shadow:0 30px 90px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .contextBar{
+      padding:14px 18px 10px;
+      display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;
+      color:var(--muted); font-size:11px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    }
+    .contextBar .loaded{display:flex; gap:8px; flex-wrap:wrap}
+
+    .contextBarActions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-left:auto;
+    }
+    .clearChatBtn{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      color:#dfe7ff;
+      height:30px;
+      padding:0 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:.01em;
+      cursor:pointer;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease, opacity .18s ease;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .clearChatBtn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(255,255,255,.16);
+      background:rgba(255,255,255,.07);
+    }
+    .clearChatBtn:active{
+      transform:translateY(0);
+    }
+
+    .audioModeBtn,.micBtn{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      color:#dfe7ff;
+      height:30px;
+      min-width:30px;
+      padding:0 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:.01em;
+      cursor:pointer;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease, opacity .18s ease;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+    }
+    .audioModeBtn:hover,.micBtn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(255,255,255,.16);
+      background:rgba(255,255,255,.07);
+    }
+    .audioModeBtn.active,.micBtn.active{
+      background:rgba(65, 134, 255, .14);
+      border-color:rgba(110, 170, 255, .40);
+      color:#ffffff;
+    }
+    .voiceStatus{
+      font-size:12px;
+      color:#9db3e9;
+      margin-top:8px;
+      min-height:18px;
+    }
+    .miniPill{
+      padding:6px 10px; border-radius:999px; border:1px solid var(--line);
+      background:rgba(255,255,255,.03); color:#cfd8f7;
+      max-width:280px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .messages{
+      max-height:300px;
+      min-height:132px;
+      overflow:auto;
+      padding:20px 18px 14px;
+      display:flex; flex-direction:column; gap:14px;
+      transition:max-height .28s ease, min-height .28s ease;
+      scroll-behavior:smooth;
+    }
+    .hero.chatStarted .messages{
+      max-height:520px;
+      min-height:250px;
+    }
+    .messages::-webkit-scrollbar{width:10px}
+    .messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
+    .msg{
+      max-width:min(92%, 860px);
+      padding:0;
+      border:none;
+      background:transparent;
+      font-size:14px;
+      line-height:1.65;
+      white-space:pre-wrap;
+    }
+    .msg.user{
+      align-self:flex-end;
+      max-width:min(78%, 720px);
+      padding:14px 18px;
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(32,54,92,.94), rgba(22,39,68,.94));
+      border:1px solid rgba(122,164,255,.2);
+      box-shadow:0 12px 28px rgba(0,0,0,.18);
+    }
+    .msg.bot{
+      align-self:flex-start;
+      width:100%;
+      color:#eef3ff;
+    }
+    .typed{
+      border-right:2px solid rgba(255,255,255,.55);
+      animation: blinkCaret .9s step-end infinite;
+    }
+    @keyframes blinkCaret{
+      50%{border-color:transparent}
+    }
+    .entry{
+      padding:16px 18px 16px;
+      border-top:1px solid rgba(255,255,255,.05);
+      background:linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.02));
+    }
+    .smartComposer{
+      display:flex;
+      align-items:flex-end;
+      gap:10px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(14,22,36,.96), rgba(9,15,28,.98));
+      border-radius:28px;
+      padding:12px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 18px 36px rgba(0,0,0,.2);
+    }
+    .composerTool,
+    .sendFab{
+      width:44px;
+      height:44px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      flex:0 0 auto;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .composerTool:hover,
+    .sendFab:hover{
+      transform:translateY(-1px);
+      border-color:rgba(255,255,255,.16);
+      background:rgba(255,255,255,.07);
+    }
+    .composerTool svg,
+    .sendFab svg{width:18px;height:18px}
+    .sendFab{
+      background:rgba(110,168,255,.14);
+      border-color:rgba(110,168,255,.26);
+    }
+    .chatComposer{
+      flex:1;
+      min-width:0;
+      max-height:180px;
+      min-height:44px;
+      resize:none;
+      border:none;
+      outline:none;
+      background:transparent;
+      color:#fff;
+      font:inherit;
+      font-size:15px;
+      line-height:1.55;
+      padding:10px 4px 10px;
+    }
+    .chatComposer::placeholder{color:#8e99b4}
+    .composerHint{
+      padding:10px 6px 0;
+      color:var(--muted);
+      font-size:11px;
+      line-height:1.45;
+    }
+    .chipsWrap{display:none; margin-top:14px}
+    .chipsLabel{
+      font-size:11px;
+      color:var(--muted);
+      margin:0 0 10px 4px;
+      letter-spacing:.02em;
+    }
+    .chips{
+      display:flex;
+      gap:10px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      padding:2px 2px 6px;
+      scrollbar-width:none;
+      -ms-overflow-style:none;
+      mask-image:linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
+      -webkit-mask-image:linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
+    }
+    .chips::-webkit-scrollbar{display:none}
+    .chip{
+      flex:0 0 auto;
+      min-height:38px;
+      padding:9px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      color:#eef4ff;
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer;
+      white-space:nowrap;
+      transition:transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+      box-shadow:0 6px 18px rgba(0,0,0,.14);
+    }
+    .chip:hover{
+      transform:translateY(-1px);
+      background:rgba(255,255,255,.08);
+      border-color:rgba(122,170,255,.22);
+      box-shadow:0 10px 24px rgba(0,0,0,.18);
+    }
+    .thinkingBubble{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#dbe6ff;
+      padding:12px 16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.06);
+      width:fit-content;
+    }
+    .thinkingDots{display:inline-flex; gap:4px; align-items:center;}
+    .thinkingDots span{
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:rgba(255,255,255,.72);
+      animation:thinkingPulse 1s infinite ease-in-out;
+    }
+    .thinkingDots span:nth-child(2){animation-delay:.15s}
+    .thinkingDots span:nth-child(3){animation-delay:.3s}
+
+    .composerWrap.ready .smartComposer{border-color:rgba(110,168,255,.14)}
+    .composerWrap:not(.ready) .contextBar .loaded .miniPill:first-child{opacity:.72}
+    .cards{
+      width:min(840px, 92%);
+      margin-top:16px;
+      display:grid;
+      grid-template-columns: repeat(3,1fr);
+      gap:12px;
+    }
+    .miniCard{
+      min-height:90px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      padding:16px;
+    }
+    .miniCard .t{font-size:14px; font-weight:700; margin-bottom:8px}
+    .miniCard .d{font-size:12px; color:var(--muted); line-height:1.45}
+
+    .pricingPage{display:none; flex:1; min-height:0; padding:6px 4px 0}
+    .pricingBox{
+      margin-top:14px;
+      border-radius:24px; border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      padding:18px;
+    }
+    .pricingGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px}
+    .plan{border:1px solid var(--line); border-radius:20px; padding:16px; background:rgba(255,255,255,.02)}
+    .plan h3{margin:0 0 8px; font-size:15px}
+    .plan .pp{font-size:24px; font-weight:800; margin:8px 0 12px}
+    .plan ul{margin:0; padding-left:18px; color:var(--muted); font-size:12px; line-height:1.55}
+    .plan.featured{background:rgba(110,168,255,.08); border-color:rgba(110,168,255,.2)}
+
+    .modalOverlay{
+      position:fixed; inset:0; background:rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center; z-index:50; padding:24px;
+    }
+    .modal{
+      width:min(920px, 100%); border-radius:28px; overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, #101726, #0b101a);
+      box-shadow:var(--shadow);
+    }
+    .modalTop{padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line)}
+    .modalTitle{font-size:18px; font-weight:800}
+    .close{width:38px; height:38px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.03); color:#fff; cursor:pointer}
+    .modalBody{padding:18px 20px 20px}
+    .featureGrid{display:grid; grid-template-columns:1.2fr .8fr; gap:14px}
+    .featureCard{border:1px solid var(--line); border-radius:20px; background:rgba(255,255,255,.025); padding:16px}
+    .featureCard h3{margin:0 0 8px; font-size:15px}
+    .featureCard p,.featureCard li{color:var(--muted); font-size:12px; line-height:1.5}
+    .featureCard ul{margin:10px 0 0; padding-left:18px}
+    .made{margin-top:14px; font-size:12px; color:#d6defb; font-weight:700}
+
+    .app.sidebarCollapsed{
+      grid-template-columns:78px 1fr;
+    }
+    .app.sidebarCollapsed .sidebar{
+      padding-left:12px;
+      padding-right:12px;
+      align-items:stretch;
+    }
+    .app.sidebarCollapsed .brand{
+      padding-left:4px;
+      padding-right:4px;
+      justify-content:center;
+    }
+    .app.sidebarCollapsed .brand > div,
+    .app.sidebarCollapsed .search span,
+    .app.sidebarCollapsed .navbtn span:not(.ic),
+    .app.sidebarCollapsed .history{
+      display:none;
+    }
+    .app.sidebarCollapsed .search{
+      justify-content:center;
+      padding:0;
+      width:42px;
+      margin-inline:auto;
+    }
+    .app.sidebarCollapsed .nav{
+      gap:8px;
+      align-items:center;
+    }
+    .app.sidebarCollapsed .navbtn{
+      width:42px;
+      height:42px;
+      justify-content:center;
+      padding:0;
+      border-radius:14px;
+    }
+    .app.sidebarCollapsed .navbtn .ic{
+      width:auto;
+      font-size:14px;
+    }
+    .app.sidebarCollapsed .sidebarToggle svg{
+      transform:rotate(180deg);
+    }
+
+    .tooltip{
+      position:absolute;
+      left:calc(100% + 12px);
+      top:50%;
+      transform:translateY(-50%) translateX(-4px);
+      background:rgba(10,15,26,.98);
+      color:#eef3ff;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+      padding:7px 10px;
+      font-size:11px;
+      line-height:1;
+      white-space:nowrap;
+      box-shadow:0 14px 34px rgba(0,0,0,.34);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+      z-index:35;
+    }
+    .app.sidebarCollapsed .navbtn{position:relative;}
+    .app.sidebarCollapsed .navbtn:hover .tooltip{
+      opacity:1;
+      transform:translateY(-50%) translateX(0);
+    }
+    .app.sidebarCollapsed .brand img{margin-inline:auto;}
+    .app.sidebarCollapsed .sidebarToggle{right:-15px;}
+
+    @media (max-width: 980px){
+      .sidebarToggle{display:none}
+      .app{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .cards,.composerWrap{
+      margin-top:50px;
+      transition:margin-top .28s ease, width .28s ease, box-shadow .28s ease;
+      animation: fadeUp 0.6s ease;width:100%}
+      .pricingGrid,.cards,.featureGrid{grid-template-columns:1fr}
+      .welcome h1,.welcome p{font-size:18px}
+    }
+  
+    @keyframes thinkingPulse{
+      0%, 80%, 100%{opacity:.28; transform:translateY(0)}
+      40%{opacity:1; transform:translateY(-2px)}
+    }
+
+    @keyframes fadeUp{
+      from{
+        opacity:0;
+        transform:translateY(20px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+  </style>
+
+</head>
+<body>
+  <div class="shell">
+    <div class="app">
+      <aside class="sidebar">
+        <button class="sidebarToggle" id="sidebarToggle" aria-label="Collapse sidebar" title="Collapse sidebar">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14.5 6.5L8.5 12l6 5.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="brand">
+          <img src="data:image/webp;base64,UklGRnY2AABXRUJQVlA4IGo2AAAwIAKdASqwBLAEPrVarU+nMr+iIXJo0/AWiWdu/BFZxe3d7qSDHIpdk31f9StocN+7uz/9n3qo/ufrg+fX1gc6LuwG9dX0n41/2H9p/ZP4R/M/2P/if2/9vfY2wra38yP479rf6P+N9x39l/ffBngC/mu2i9r5gvePzPvmPMv9J/z/sAfz7+y+lX+z8KD7t/3PYB/lv+19XX/T/a/z9fZfsMeXH7Af3m///vJBoktfkCQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQDCGQN+j3BIafeU0sqL0+8ppZT/0CBz5WQEgJASAkBICQEgJASAkBICQEgJASAkBICQDFOJREWtsmsqL0+8ppZUXp95TSrMT391zOsGHQ2qynoRWFa/IEgJASAkBICQEgJASAkBICQEgJAR+eSj/lquRT13xSR4kpuvfFBebgSBuHSNlrJAkBICQEgJASAkBICQEgJASAkBICQEgI/PJNl2ZCKwLCGuKbd+SJxyuNwqECEOQrVsyEVhWvyBICQEgJASAkBICQEgJASAkBGYPiEuzIRVTFZhmdVE8y4K/gBA4ppqBtVF2zIRWFa/IEgJASAkBICQEgJASAkBIBliFFatmQiYgs99xlggwkTKh2rz1HDTgR7JSvCsK1+QJASAkBICQEgJASAkBICQEgJASAZYhRWrZkIlcms2O32ubT7ykC+DbSw45wgCQJASAkBICQEgJASAkBICQEgJASAkBICMwfEJdmQisY9xc5kzXX5AkBICQEgJASAkBICQEgJASAkBICQEfnkmy7MhFYVr8S4gH0DEgJASAkBICQEgJASAkBICQEgJASAkBGYPiEuzIRWFa+dEItDMhFYVr8gSAkBICQEgJASAkBICQEgJAR+eSbLsyEVhWvxLiAlqIRWFa/IEgJASAkBICQEgJASAkBICQEgGWIUVq2ZCKwrW1/896EVhWvyBICQEgJASAkBICQEgJASAkBICMwfEJdmQisK186IRaGZCKwrX5AkBICQEgJASAkBICQEgJASAj88k2XZkIrCtfiXEBLUQisK1+QJASAkBICQEgJASAkBICQEgIxkN3Pf9ncPeFlSVDvgoNwSGn3lNLKi9PvKaWVF6fb+vPNduxCitWzIRWFa/IEgJASAkBICQEgJASAkBH53o2AYIKaNSIPT7ymllRen3lNLKi9PvKaVZjUjz5fnvQisK1+QJASAkBICQEgJASAkBICQEgI/O+1jE++sMhjy0z9K7cmp7mCd0nooovi+lbrdiFFatmQisK1+QJASAkBICQEgJASAkBICPzvtYJLWqvNmIGDy2eCze/SI/v8jVYatbrdiFFatmQisK1+QJASAkBICQEgJASAkBICPzvtZYzC4Axl6cdOJMYlOUWcWuaCSkUDXPyuCX570IrCtfkCQEgJASAkBICQEgJASAkBICPzvtYJLIfzco7nV1E24c9GJagodV0DZa4p/HI1WFGt1uxCitWzIRWFa/IEgJASAkBICQEgJASAkBH532sElkOuW5CJlUpLYtIAmaYVBdD4j877SHbO35AkBICQEgJASAkBICQEgJASAkBICQDK1QN5FBn1lRen3lM1Ig9OjDRqRB6feU0sqAUz0OV/6acJAkBICQEgJASAkBICQEgJASAkBICQEfgNAExeXPhWX1n3zNLKi9OjKaWVF6feU0sqL0+58JgWvtcOGJASAkBICQEgJASAkBICQEgJASAkBICUGWaGs9jCbQhMoqMCIY1kheT9M04SBICQEgJASAkBICQEgJASAkBICQEgJANRHWTm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KrvGYjAyr6vEaOKDpRB/1oZuEqrDsXAzhqI+ZHoqamIbZKHAynIbV93ulCL7Sz5mK8XFarvI0QM7BD0Us/icLogoW2SEfL3sIngnNdaEy/CxwjPRHuo+rUE2AezX4ewmZ3EG/QrWEh1uqKCFRLSBWvyBIBdq1m64d9FYKG8fLvrxa50vWFXAONnjt+jiy8nku96Taem7THA198mwHkIXzWWywEEUkMkDNM2x4w+cmSHoEwcPNphmmFIuM/kn0gNWP0cJaJVhVW+3cvnRBK7WoLLT50l49D9sfObgoqADKiG7MDkHUrILz+ZBRAEY3BUMiTMPU8B46Ylj6IeBFSm4BfFMfWJk+29ZvWA7ggg12PNtHBpZphk2EECyiE5v+wqH6ThoeYw5naO2Qofx1icwRh4IM8KkhTd/4LP7KNKrCtfkCReiWq7HI6grJYKSSZD/senXostahXW9crqlylAcvEGsylCo6KSRskUlQCHcVF2zIRWFa/IEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgJASAkBICQEgFwAA/v+hH5AAAAc2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA97mhF/T9axLnkQ14jRXg661ghBdn4OWOZDGsx+FNObeE+4qeZqv8T9y1xxHAAAC5cDQ6VCSAxGG/xvVjYw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" alt="RevasH AI"/>
+          <div>
+            <div class="name">RevasH AI</div>
+            <div style="font-size:11px;color:var(--muted)">Review Intelligence Assistant</div>
+          </div>
+        </div>
+
+        <div class="search">⌕ <span>Search chats</span><span style="margin-left:auto">⌘</span></div>
+
+        <nav class="nav">
+          <a class="navbtn active" id="homeBtn" href="#"><span class="ic">⌂</span><span>Home</span></a>
+          <a class="navbtn" href="#"><span class="ic">▤</span><span>Templates</span></a>
+          <a class="navbtn" href="#"><span class="ic">☰</span><span>Explore</span></a>
+          <a class="navbtn" href="#"><span class="ic">◔</span><span>History</span></a>
+          <a class="navbtn" id="pricingBtn" href="#"><span class="ic">⌘</span><span>Pricing</span></a>
+        </nav>
+
+        <div class="history">
+          <div class="grp">Today</div>
+          <div class="histItem">Should I buy this powerbank?</div>
+          <div class="histItem">Common complaints on demo product</div>
+          <div class="histItem">Is 22.5W charging enough?</div>
+
+          <div class="grp">Earlier</div>
+          <div class="histItem">Show product specs summary</div>
+          <div class="histItem">Give a 1-line verdict</div>
+          <div class="histItem">Compare pros and cons</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topline">
+          <div class="mode">AI Assistant ▾</div>
+          <div class="statusPill"><span class="dot" id="statusDot"></span><span id="statusText">No page loaded</span></div>
+        </div>
+
+        <section id="homePage" class="hero">
+          <div class="orb"></div>
+          <div class="welcome">
+            <h1>Hello, I'm RevasH AI</h1>
+            <p>Can I help you with something?</p>
+          </div>
+
+          <div class="composerWrap">
+            <div class="contextBar">
+              <div>Message RevasH AI…</div>
+              <div class="contextBarActions">
+                <button class="audioModeBtn" id="audioModeBtn" type="button" aria-label="Toggle audio replies">🔊 Audio</button>
+                <button class="clearChatBtn" id="clearChatBtn" type="button" aria-label="Clear chat">Clear chat</button>
+              </div>
+            </div>
+
+            <div class="messages" id="messages"></div>
+
+            <div class="entry">
+              <div class="smartComposer">
+                <button class="composerTool" id="linkBtn" title="Paste product URL" aria-label="Paste product URL">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M10.5 13.5L13.5 10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8.25 15.75l-1.5 1.5a3.182 3.182 0 0 1-4.5-4.5l3-3a3.182 3.182 0 0 1 4.5 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15.75 8.25l1.5-1.5a3.182 3.182 0 1 1 4.5 4.5l-3 3a3.182 3.182 0 0 1-4.5 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <textarea class="chatComposer" id="chatComposer" rows="1" placeholder="Paste a product URL to begin, or ask about the loaded product…"></textarea>
+                <button class="sendFab" id="sendBtn" title="Send" aria-label="Send">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 5l0 14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    <path d="M6.5 10.5L12 5l5.5 5.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="composerHint" id="composerHint">Paste a product page URL first. After context loads, ask for price, verdict, specs, complaints, or pros and cons.</div>
+
+              <div class="chipsWrap" id="chipsWrap">
+                <div class="chipsLabel">Try one of these</div>
+                <div class="chips">
+                  <button class="chip" data-question="Should I buy this?">Should I buy this?</button>
+                  <button class="chip" data-question="Price and discount">Price and discount</button>
+                  <button class="chip" data-question="Top pros and cons">Top pros and cons</button>
+                  <button class="chip" data-question="Common complaints">Common complaints</button>
+                  <button class="chip" data-question="Show product specs">Show product specs</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          </section>
+
+        <section id="pricingPage" class="pricingPage">
+          <div class="pricingBox">
+            <div style="font-size:22px;font-weight:800">Pricing</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px">Same plans, new theme.</div>
+
+            <div class="pricingGrid">
+              <div class="plan">
+                <h3>Free</h3>
+                <div class="pp">₹0</div>
+                <ul>
+                  <li>Basic product and review Q&A</li>
+                  <li>Single page context</li>
+                  <li>Limited daily usage</li>
+                </ul>
+              </div>
+              <div class="plan featured">
+                <h3>Pro</h3>
+                <div class="pp">₹199/month</div>
+                <ul>
+                  <li>Unlimited context extraction</li>
+                  <li>Advanced verdicts and summaries</li>
+                  <li>More detailed analysis</li>
+                </ul>
+              </div>
+              <div class="plan">
+                <h3>Enterprise</h3>
+                <div class="pp">Custom</div>
+                <ul>
+                  <li>Team dashboards</li>
+                  <li>Multi-source analysis</li>
+                  <li>Custom workflow integration</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modalOverlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modalTop">
+        <div class="modalTitle">Welcome to RevasH AI</div>
+        <button class="close" id="closeModal">✕</button>
+      </div>
+      <div class="modalBody">
+        <div class="featureGrid">
+          <div class="featureCard">
+            <h3>What this demo can do</h3>
+            <p>RevasH AI can take a product page URL, extract the page context, and answer both product-related and review-related questions.</p>
+            <ul>
+              <li>Buy / avoid verdict</li>
+              <li>Price, discount, specs, ports, fast charging</li>
+              <li>Pros, cons, common complaints, user risk</li>
+              <li>Smart fallback to demo mode</li>
+            </ul>
+            <div class="made">Built by Ashutosh Mohanty</div>
+          </div>
+          <div class="featureCard">
+            <h3>Suggested demo questions</h3>
+            <ul>
+              <li>Should I buy this?</li>
+              <li>What is the price and discount?</li>
+              <li>Show product specs</li>
+              <li>Is fast charging reliable?</li>
+              <li>What are common complaints?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEMO = {
+      url: "demo://ambrane-stylo-n20",
+      title: "Ambrane 20000mAh Powerbank (Stylo N20, Black)",
+      product: {
+        title: "Ambrane 20000mAh Powerbank (Stylo N20, Black)",
+        brand: "Ambrane",
+        model: "Stylo N20",
+        color: "Black",
+        price: "₹1,399",
+        mrp: "₹2,499",
+        discount: "44% off",
+        rating: "4.2",
+        ratingsCount: "12,874",
+        reviewsCount: "1,066",
+        capacity: "20000mAh",
+        fastCharging: "22.5W",
+        features: [
+          "22.5W Fast Charging",
+          "Power Delivery (PD)",
+          "Quick Charge",
+          "In-built Type-C cable",
+          "USB + Type-C output",
+          "LED indicator"
+        ],
+        compatibility: "iPhone, Android phones, tablets, earbuds (device dependent)"
+      },
+      reviews: [
+        "Charging speed is excellent with my Type-C phone. Built-in cable is convenient. Charged my phone around 3 times easily.",
+        "Capacity is good for travel and office. Slightly heavy. Works fine with earbuds. Tablet charging is slower.",
+        "Initially good, but after 2 weeks the built-in cable feels loose. Not sure about long-term durability.",
+        "Best for office use. Charges quickly during meetings. LED indicator helps. Value for money during sale.",
+        "Heats up with my older phone and sometimes charges slowly. Not satisfied at this price.",
+        "Product quality is good. Packaging was damaged but item fine. Consistent charging on iPhone with Type-C cable.",
+        "Using for 3+ months. Still works well. Charges phone 3 times + earbuds once. Worth it for commute.",
+        "Support response was slow when I raised a query. Product is fine otherwise."
+      ]
+    };
+
+    const state = {
+      loadedUrl: "",
+      productTitle: "",
+      product: null,
+      reviews: [],
+      mode: "none",
+      suggestionsVisible: false
+    };
+
+    const messages = document.getElementById("messages");
+    const chatComposer = document.getElementById("chatComposer");
+    const sendBtn = document.getElementById("sendBtn");
+    const linkBtn = document.getElementById("linkBtn");
+    const composerHint = document.getElementById("composerHint");
+    const chipsWrap = document.getElementById("chipsWrap");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const modalOverlay = document.getElementById("modalOverlay");
+    const closeModal = document.getElementById("closeModal");
+    const homeBtn = document.getElementById("homeBtn");
+    const pricingBtn = document.getElementById("pricingBtn");
+    const homePage = document.getElementById("homePage");
+    const pricingPage = document.getElementById("pricingPage");
+    const welcomeBlock = homePage.querySelector(".welcome");
+    const orbBlock = homePage.querySelector(".orb");
+    const appShell = document.querySelector(".app");
+    const sidebarToggle = document.getElementById("sidebarToggle");
+    const clearChatBtn = document.getElementById("clearChatBtn");
+    const audioModeBtn = document.getElementById("audioModeBtn");
+    const micBtn = document.getElementById("micBtn");
+    const voiceStatus = document.getElementById("voiceStatus");
+
+    function setChatStarted(started) {
+      homePage.classList.toggle("chatStarted", !!started);
+    }
+
+    function addMsg(text, who="bot") {
+      if(who === "user") setChatStarted(true);
+      const div = document.createElement("div");
+      div.className = "msg " + who;
+      messages.appendChild(div);
+
+      if(who === "bot"){
+        let i = 0;
+        div.classList.add("typed");
+        const content = String(text);
+        const timer = setInterval(() => {
+          div.textContent = content.slice(0, i + 1);
+          i++;
+          messages.scrollTop = messages.scrollHeight;
+          if(i >= content.length){
+            clearInterval(timer);
+            div.classList.remove("typed");
+          }
+        }, 12);
+      } else {
+        div.textContent = text;
+        messages.scrollTop = messages.scrollHeight;
+      }
+    }
+
+    function addThinkingMsg(label="Thinking") {
+      setChatStarted(true);
+      const div = document.createElement("div");
+      div.className = "msg bot";
+      div.innerHTML = '<span class="thinkingBubble">' + label + '<span class="thinkingDots"><span></span><span></span><span></span></span></span>';
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+      return div;
+    }
+
+    function autoResizeComposer() {
+      chatComposer.style.height = "42px";
+      chatComposer.style.height = Math.min(chatComposer.scrollHeight, 160) + "px";
+    }
+
+    function looksLikeUrl(value) {
+      return /^(https?:\/\/|www\.)/i.test(value) || (/\.[a-z]{2,}(\/|$)/i.test(value) && !/\s/.test(value));
+    }
+
+    function normalizeUrl(value) {
+      const trimmed = (value || "").trim();
+      if(!trimmed) return "";
+      if(/^https?:\/\//i.test(trimmed)) return trimmed;
+      if(/^www\./i.test(trimmed) || (/\.[a-z]{2,}(\/|$)/i.test(trimmed) && !/\s/.test(trimmed))) return "https://" + trimmed.replace(/^\/+/, "");
+      return trimmed;
+    }
+
+    function setComposerMode() {
+      if(state.loadedUrl) {
+        chatComposer.placeholder = "Ask anything about the loaded product…";
+        composerHint.textContent = state.suggestionsVisible
+          ? "Context is ready. Pick a quick prompt below, or type your own question."
+          : "Ask like a normal chat, or use the link icon to load another URL.";
+      } else {
+        chatComposer.placeholder = "Paste a product URL to begin…";
+        composerHint.textContent = "Start by pasting a product page URL. Once loaded, this box works like a regular AI chat.";
+      }
+    }
+
+    function truncate(s, n=34) {
+      if(!s) return s;
+      return s.length > n ? s.slice(0, n - 1) + "…" : s;
+    }
+
+    function renderTop() {
+      chipsWrap.style.display = state.loadedUrl && state.suggestionsVisible ? "block" : "none";
+      document.querySelector(".composerWrap")?.classList.toggle("ready", !!state.loadedUrl);
+      if(state.loadedUrl) {
+        statusDot.classList.add("on");
+        statusText.textContent = state.mode === "demo" ? "Demo data loaded" : "Page loaded";
+      } else {
+        statusDot.classList.remove("on");
+        statusText.textContent = "No page loaded";
+      }
+      setComposerMode();
+      wireChips();
+    }
+
+
+    let audioMode = false;
+    let recognition = null;
+    let listening = false;
+
+    function setVoiceStatus(text="") {
+      if (voiceStatus) voiceStatus.textContent = text;
+    }
+
+    function speakText(text) {
+      if (!audioMode || !("speechSynthesis" in window) || !text) return;
+      try {
+        window.speechSynthesis.cancel();
+        const cleaned = String(text).replace(/✅|⚖️|💰|👍|👎|📊|🤖|⚠️|🔥|📦|🔋|🛠️/g, "").trim();
+        const utterance = new SpeechSynthesisUtterance(cleaned);
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.onstart = () => setVoiceStatus("Speaking…");
+        utterance.onend = () => setVoiceStatus("");
+        utterance.onerror = () => setVoiceStatus("");
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        setVoiceStatus("");
+      }
+    }
+
+    function setupRecognition() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return null;
+      const rec = new SR();
+      rec.lang = "en-US";
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      rec.onstart = () => {
+        listening = true;
+        micBtn?.classList.add("active");
+        setVoiceStatus("Listening…");
+      };
+      rec.onend = () => {
+        listening = false;
+        micBtn?.classList.remove("active");
+        setVoiceStatus("");
+      };
+      rec.onerror = () => {
+        listening = false;
+        micBtn?.classList.remove("active");
+        setVoiceStatus("Mic input not captured. Please try again.");
+      };
+      rec.onresult = (event) => {
+        const transcript = event.results?.[0]?.[0]?.transcript || "";
+        if (chatComposer && transcript) {
+          chatComposer.value = transcript;
+          autoResizeComposer();
+          setVoiceStatus("Voice captured. You can edit or send.");
+        }
+      };
+      return rec;
+    }
+
+    function toggleAudioMode() {
+      audioMode = !audioMode;
+      audioModeBtn?.classList.toggle("active", audioMode);
+      audioModeBtn.textContent = audioMode ? "🔊 Audio on" : "🔊 Audio";
+      setVoiceStatus(audioMode ? "Audio replies enabled." : "");
+      if (!audioMode && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    function startVoiceInput() {
+      if (!recognition) recognition = setupRecognition();
+      if (!recognition) {
+        setVoiceStatus("Voice input is not supported in this browser.");
+        return;
+      }
+      try {
+        if (listening) recognition.stop();
+        else recognition.start();
+      } catch (e) {
+        setVoiceStatus("Voice input could not start. Please try again.");
+      }
+    }
+
+    function resetChat() {
+      state.suggestionsVisible = false;
+      setChatStarted(false);
+      messages.innerHTML = "";
+      addMsg("Paste a product page URL to begin, and I'll turn it into a cleaner chat flow for product Q&A. ✅", "bot");
+      setComposerMode();
+    }
+
+    function clearChatHistory() {
+      state.loadedUrl = "";
+      state.productTitle = "";
+      state.product = null;
+      state.reviews = [];
+      state.mode = "none";
+      state.suggestionsVisible = false;
+      chatComposer.value = "";
+      renderTop();
+      resetChat();
+      autoResizeComposer();
+      chatComposer.focus();
+    }
+
+    async function extractFromUrl(url) {
+      const res = await fetch(url, { method: "GET", mode: "cors", credentials: "omit" });
+      if(!res.ok) throw new Error("Fetch failed");
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const title = (doc.querySelector("h1")?.textContent || doc.title || "Unknown product").trim();
+      const pickText = (sel) => (doc.querySelector(sel)?.textContent || "").trim();
+
+      const product = {
+        title,
+        brand: pickText('[data-brand], .brand, ._2WkVRV') || "Ambrane",
+        model: pickText('[data-model]') || "Stylo N20",
+        color: pickText('[data-color]') || "Black",
+        price: pickText('.price, ._30jeq3, [data-price]') || "₹1,399",
+        mrp: pickText('.mrp, ._3I9_wc, [data-mrp]') || "₹2,499",
+        discount: pickText('.off, ._3Ay6Sb, [data-discount]') || "44% off",
+        rating: pickText('.rating, ._3LWZlK, [data-rating]') || "4.2",
+        capacity: "",
+        fastCharging: "",
+        features: [],
+        compatibility: "iPhone, Android phones, tablets, earbuds (device dependent)"
+      };
+
+      const badges = Array.from(doc.querySelectorAll('.badge, [data-feature]'))
+        .map(n => n.textContent?.trim())
+        .filter(Boolean);
+      product.features = [...new Set(badges)].slice(0, 12);
+
+      const allText = (title + " " + product.features.join(" ")).toLowerCase();
+      const capMatch = allText.match(/(\d{4,5})\s*mah/);
+      if(capMatch) product.capacity = capMatch[1] + "mAh";
+      const wMatch = allText.match(/(\d{1,2}\.?\d?)\s*w/);
+      if(wMatch) product.fastCharging = wMatch[1] + "W";
+
+      const reviews = Array.from(doc.querySelectorAll(".review-text"))
+        .map(n => n.textContent?.trim())
+        .filter(Boolean)
+        .slice(0, 30);
+
+      return { title, reviews, product };
+    }
+
+    function analyzeReviews(reviews) {
+      const text = reviews.join(" ").toLowerCase();
+      const pros = [];
+      const cons = [];
+
+      if(/fast|22.5|quick charge|power delivery|pd/.test(text)) pros.push("Fast charging");
+      if(/capacity|20000|backup|3 times|three times/.test(text)) pros.push("Good backup/capacity");
+      if(/convenient|built-in|in-built|cable/.test(text)) pros.push("Built-in cable convenience");
+      if(/value|worth|sale|money/.test(text)) pros.push("Value for money");
+      if(/reliable|months|still works/.test(text)) pros.push("Reliability");
+
+      if(/heat|heats|warm|heating/.test(text)) cons.push("Heating");
+      if(/slow charging|charges slowly|slow/.test(text)) cons.push("Slow charging on some devices");
+      if(/loose|durability|long-term/.test(text)) cons.push("Durability / loose cable");
+      if(/support|service|response was slow/.test(text)) cons.push("Slow support");
+      if(/heavy/.test(text)) cons.push("Heavy / bulky");
+
+      let risk = 3;
+      if(cons.includes("Durability / loose cable")) risk += 2;
+      if(cons.includes("Heating")) risk += 2;
+      if(cons.includes("Slow charging on some devices")) risk += 1;
+      if(cons.includes("Slow support")) risk += 1;
+      if(pros.includes("Fast charging")) risk -= 1;
+      if(pros.includes("Good backup/capacity")) risk -= 1;
+      risk = Math.max(1, Math.min(10, risk));
+
+      let verdict = "Buy";
+      if(risk >= 7) verdict = "Avoid / Consider alternatives";
+      else if(risk >= 5) verdict = "Buy only if price is good";
+      else verdict = "Buy";
+
+      return { pros:[...new Set(pros)], cons:[...new Set(cons)], risk, verdict };
+    }
+
+    function answerQuestion(q) {
+      const question = (q || "").trim();
+      if(!question) return "Ask me something and I’ll reply 🙂";
+      if(!state.loadedUrl) return "First load a product page URL (or use demo data). Then ask your question ✅";
+
+      const ql = question.toLowerCase();
+      const product = state.product || { title: state.productTitle || "this item" };
+      const reviewInfo = analyzeReviews(state.reviews);
+      const pros = reviewInfo.pros;
+      const cons = reviewInfo.cons;
+      const risk = reviewInfo.risk;
+      const verdict = reviewInfo.verdict;
+
+      const fmtFeatures = () => {
+        const feats = product.features && product.features.length ? product.features.slice(0,8) : [];
+        return feats.length ? feats.map(f => "• " + f).join("\n") : "• 22.5W Fast Charging\n• Power Delivery\n• In-built Type-C cable";
+      };
+
+      const fmtPrice = () => {
+        const parts = [];
+        if(product.price) parts.push("Price: " + product.price);
+        if(product.mrp) parts.push("MRP: " + product.mrp);
+        if(product.discount) parts.push("Discount: " + product.discount);
+        return parts.join(" • ");
+      };
+
+      if(/weather|bitcoin|cricket|movie/.test(ql)) {
+        return "I’m focused on this product page right now 😄 Ask me about price, specs, complaints, verdict, charging or compatibility.";
+      }
+
+      if(/price|mrp|cost|discount/.test(ql)) {
+        return "Here’s the pricing for “" + (product.title || state.productTitle) + "”:\n" + fmtPrice();
+      }
+
+      if(/capacity|mah/.test(ql)) {
+        return "Battery capacity: " + (product.capacity || "20000mAh") + "\n\nThat should be suitable for multiple phone top-ups depending on device battery size.";
+      }
+
+      if(/watt|fast charge|22.5|pd|quick charge/.test(ql)) {
+        const supports = (product.features || []).filter(x => /power delivery|pd|quick|qc|fast/i.test(x));
+        return "Fast charging: " + (product.fastCharging || "22.5W") + "\nSupports: " + (supports.length ? supports.join(", ") : "PD / Quick Charge") + "\n\nReal speed depends on your phone + cable + charging protocol support.";
+      }
+
+      if(/port|type c|usb|cable/.test(ql)) {
+        const hints = (product.features || []).filter(x => /usb|type|cable|output|input|pd|quick/i.test(x));
+        return "Ports / cable details:\n" + (hints.length ? hints.map(x => "• " + x).join("\n") : "• USB + Type-C output\n• In-built Type-C cable");
+      }
+
+      if(/color|model|brand/.test(ql)) {
+        return "Product identity:\n• Brand: " + (product.brand || "Ambrane") + "\n• Model: " + (product.model || "Stylo N20") + "\n• Color: " + (product.color || "Black");
+      }
+
+      if(/feature|highlight|spec|specification/.test(ql)) {
+        return "Key features:\n" + fmtFeatures();
+      }
+
+      if(/compatible|iphone|android|tablet|earbud/.test(ql)) {
+        return "Compatibility:\n" + (product.compatibility || "iPhone, Android phones, tablets, earbuds (device dependent)");
+      }
+
+      if(/buy|worth|recommend|verdict/.test(ql)) {
+        return "✅ Verdict: " + verdict + "\nRisk score: " + risk + "/10\n\nWhy:\n• Pros: " + (pros.length ? pros.join(", ") : "Not enough positive signals") + "\n• Cons: " + (cons.length ? cons.join(", ") : "No major issues detected") + "\n\nTip: If the discount is good and return policy is safe, this becomes a better buy.";
+      }
+
+      if(/pros|advantages/.test(ql)) {
+        return "Top Pros:\n• " + (pros.length ? pros.join("\n• ") : "Not enough data");
+      }
+
+      if(/cons|complain|issue|problem/.test(ql)) {
+        return "Common Complaints:\n• " + (cons.length ? cons.join("\n• ") : "No strong repeated complaints in sample");
+      }
+
+      return "Here’s a quick summary for “" + (product.title || state.productTitle || "this item") + "”:\n\n• " + fmtPrice() + "\n• Features:\n" + fmtFeatures() + "\n\nFrom reviews:\n• Verdict: " + verdict + " (risk " + risk + "/10)\n• Pros: " + (pros.length ? pros.join(", ") : "—") + "\n• Cons: " + (cons.length ? cons.join(", ") : "—");
+    }
+
+    function loadDemoData(urlOverride="") {
+      state.loadedUrl = urlOverride || DEMO.url;
+      state.productTitle = DEMO.title;
+      state.product = DEMO.product;
+      state.reviews = DEMO.reviews.slice();
+      state.mode = "demo";
+      state.suggestionsVisible = true;
+      renderTop();
+      addMsg("Product context loaded in demo mode ✅ You can now ask about specs, verdict, pros, cons, price, or complaints.", "bot");
+    }
+
+    async function processUrl(url) {
+      const normalizedUrl = normalizeUrl(url);
+      addMsg(normalizedUrl, "user");
+      const thinking = addThinkingMsg("Loading URL");
+      const demoAliases = [
+        DEMO.url,
+        "https://functional-amber-pwsupdko7d.edgeone.app/",
+        "https://functional-amber-pwsupdko7d.edgeone.app"
+      ];
+      if (demoAliases.includes(normalizedUrl)) {
+        setTimeout(() => {
+          thinking.remove();
+          loadDemoData(normalizedUrl);
+        }, 420);
+        return;
+      }
+      try {
+        const payload = await extractFromUrl(normalizedUrl);
+        const title = payload.title;
+        const reviews = payload.reviews;
+        const product = payload.product;
+        const hasEnoughData = title && title !== "Unknown product" && ((reviews && reviews.length) || (product && product.features && product.features.length));
+        if(!hasEnoughData) throw new Error("Extraction failed");
+        state.loadedUrl = normalizedUrl;
+        state.productTitle = title;
+        state.product = product || { title: title };
+        state.reviews = reviews || [];
+        state.mode = "extracted";
+        state.suggestionsVisible = true;
+        renderTop();
+        thinking.remove();
+        addMsg(`Loaded “${title || "product"}” ✅
+Now ask anything about specs, verdict, price, complaints, charging, or pros and cons.`, "bot");
+      } catch (e) {
+        thinking.remove();
+        state.loadedUrl = "";
+        state.productTitle = "";
+        state.product = null;
+        state.reviews = [];
+        state.mode = "idle";
+        state.suggestionsVisible = false;
+        renderTop();
+        addMsg("This URL seems invalid, check and put again.", "bot");
+      }
+    }
+
+    function hideQuickPrompts() {
+      state.suggestionsVisible = false;
+      renderTop();
+    }
+
+    function sendQuestion(question) {
+      const text = (question || "").trim();
+      if(!text) return;
+      if(!state.loadedUrl) {
+        addMsg("Paste a product page URL first, then I can answer product questions properly. ✅", "bot");
+        return;
+      }
+      hideQuickPrompts();
+      addMsg(text, "user");
+      const thinking = addThinkingMsg();
+      setTimeout(() => {
+        thinking.remove();
+        addMsg(answerQuestion(text), "bot");
+      }, 520);
+    }
+
+    async function handleComposerSend() {
+      const value = chatComposer.value.trim();
+      if(!value) return;
+      chatComposer.value = "";
+      autoResizeComposer();
+      if(looksLikeUrl(value)) {
+        await processUrl(value.startsWith("http") ? value : "https://" + value.replace(/^www\./i, "www."));
+      } else {
+        sendQuestion(value);
+      }
+    }
+
+    sendBtn.addEventListener("click", handleComposerSend);
+
+    chatComposer.addEventListener("input", autoResizeComposer);
+    chatComposer.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleComposerSend();
+      }
+    });
+    function handleChipClick(question) {
+      const text = (question || "").trim();
+      if(!text) return false;
+      sendQuestion(text);
+      return false;
+    }
+
+    function wireChips() {
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.setAttribute("type", "button");
+        chip.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const question = chip.getAttribute("data-question") || chip.textContent || "";
+          return handleChipClick(question);
+        };
+      });
+    }
+
+    document.querySelector(".chips")?.addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip");
+      if(!chip) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const question = chip.getAttribute("data-question") || chip.textContent || "";
+      handleChipClick(question);
+    }, true);
+
+    clearChatBtn?.addEventListener("click", clearChatHistory);
+    audioModeBtn?.addEventListener("click", toggleAudioMode);
+    micBtn?.addEventListener("click", startVoiceInput);
+
+    linkBtn.addEventListener("click", async () => {
+      try {
+        const t = await navigator.clipboard.readText();
+        if(t) {
+          chatComposer.value = t.trim();
+          autoResizeComposer();
+        }
+      } catch (e) {}
+      chatComposer.focus();
+    });
+
+    homeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      homeBtn.classList.add("active");
+      pricingBtn.classList.remove("active");
+      homePage.style.display = "flex";
+      pricingPage.style.display = "none";
+    });
+
+    pricingBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      pricingBtn.classList.add("active");
+      homeBtn.classList.remove("active");
+      homePage.style.display = "none";
+      pricingPage.style.display = "block";
+    });
+
+    function setSidebarCollapsed(collapsed) {
+      appShell.classList.toggle("sidebarCollapsed", collapsed);
+      sidebarToggle.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+      sidebarToggle.setAttribute("title", collapsed ? "Expand sidebar" : "Collapse sidebar");
+      localStorage.setItem("revash_sidebar_collapsed", collapsed ? "1" : "0");
+    }
+
+    sidebarToggle.addEventListener("click", () => {
+      setSidebarCollapsed(!appShell.classList.contains("sidebarCollapsed"));
+    });
+
+    function showModal() {
+      modalOverlay.style.display = "flex";
+    }
+    function hideModal() {
+      modalOverlay.style.display = "none";
+      localStorage.setItem("revash_deepui_seen", "1");
+    }
+    closeModal.addEventListener("click", hideModal);
+    modalOverlay.addEventListener("click", (e) => {
+      if(e.target === modalOverlay) hideModal();
+    });
+
+    setSidebarCollapsed(localStorage.getItem("revash_sidebar_collapsed") === "1");
+    renderTop();
+    resetChat();
+    autoResizeComposer();
+    if(!localStorage.getItem("revash_deepui_seen")) showModal();
+    wireChips();
+    window.__revashChipTest = function(){
+      const chips = Array.from(document.querySelectorAll(".chip")).map(c => c.textContent.trim());
+      return { chipCount: chips.length, chips, loadedUrl: state.loadedUrl || "", suggestionsVisible: !!state.suggestionsVisible };
+    };
+  </script>
+</body>
+</html>
